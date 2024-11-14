@@ -1,29 +1,42 @@
-/*
-The program lists files in the current directory if no argument is given,
-or in a specified directory if one is provided as a command-line argument.
-
-	It ignores any errors while reading directory contents, which could lead to
-	issues if the directory does not exist.
-
-	code developed by Bhamare Sanket
-*/
 package main
 
 import (
 	"fmt"
+	"io/ioutil"
 	"os"
+	"path/filepath"
 )
 
+func listFiles(dir string) error {
+	files, err := ioutil.ReadDir(dir)
+	if err != nil {
+		return err
+	}
+
+	fmt.Printf("\n%s:\n", dir) // Print the directory name as a header
+	for _, file := range files {
+		fmt.Println(file.Name())
+	}
+	return nil
+}
+
 func main() {
-	if len(os.Args) < 2 {
-		files, _ := os.ReadDir("./")
-		for _, file := range files {
-			fmt.Println(file.Name())
+	dirs := os.Args[1:] // Get directories from command-line arguments
+	if len(dirs) == 0 {
+		dirs = append(dirs, ".") // Default to current directory if none provided
+	}
+
+	for _, dir := range dirs {
+		// Get absolute path for clarity
+		absDir, err := filepath.Abs(dir)
+		if err != nil {
+			fmt.Printf("Error getting absolute path: %v\n", err)
+			continue
 		}
-	} else {
-		files, _ := os.ReadDir(os.Args[1])
-		for _, file := range files {
-			fmt.Println(file.Name())
+
+		// List files in the directory
+		if err := listFiles(absDir); err != nil {
+			fmt.Printf("Error reading directory %s: %v\n", absDir, err)
 		}
 	}
 }
